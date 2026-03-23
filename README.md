@@ -60,3 +60,44 @@ to be manually approved.
 ```
 oc apply -k bootstrap/
 ```
+
+```mermaid
+flowchart TD
+    Start([Start: OpenShift ACM Cluster Bootstrap]) --> Step1
+    
+    %% Step 1
+    Step1[Step 01: Apply MirrorSets & CatalogSources]
+    Step1 -.-> |Note: Disconnected Environments Only| Step1
+    Step1 --> Step2
+    
+    %% Step 2
+    Step2{Step 02: Install<br>ExternalSecretsOperator?}
+    Step2 -- Yes --> ESO1[Apply Operator Manifests<br><code>policies/operators/externals-secrets/operator/</code>]
+    ESO1 --> ESO2[Manually Check Installation Complete]
+    ESO2 --> ESO3[Apply Instance & SecretStores<br><code>policies/operators/externals-secrets/instance/</code>]
+    ESO3 --> Step3
+    Step2 -- No --> Step3
+    
+    %% Step 3
+    Step3[Step 03: Install OpenShift GitOps Operator] --> GitOps1[Apply Operator Manifests<br><code>policies/operators/openshift-gitops/operator/</code>]
+    GitOps1 --> GitOps2[Manually Check Installation Complete]
+    GitOps2 --> GitOps3[Apply Instance<br><code>policies/operators/openshift-gitops/instance/</code>]
+    GitOps3 --> Step4
+    
+    %% Step 4
+    Step4[Step 04: Install Advanced Cluster Management] --> ACM1[Apply Operator Manifests<br><code>policies/operators/acm/operator/</code>]
+    ACM1 --> ACM2[Manually Check Installation Complete<br><i>*Requires manual approval for<br>multicluster engine operator*</i>]
+    ACM2 --> ACM3[Apply Instance<br><code>policies/operators/acm/instance/</code>]
+    ACM3 --> Step5
+    
+    %% Step 5
+    Step5[Step 05: Install Bootstrap App of Apps] --> Boot1[Apply Bootstrap Manifests<br><code>oc apply -k bootstrap/</code>]
+    Boot1 --> Finish([Finish])
+
+    %% Styling
+    classDef stepNode fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef checkNode fill:#fff3e0,stroke:#e65100,stroke-width:1px,stroke-dasharray: 5 5;
+    
+    class Step1,Step3,Step4,Step5 stepNode;
+    class ESO2,GitOps2,ACM2 checkNode;
+```
